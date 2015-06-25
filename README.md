@@ -12,6 +12,9 @@ It depends on [pexpect](http://www.noah.org/wiki/pexpect) and includes and uses 
 
 It runs the Stanford CoreNLP jar in a separate process, communicates with the java process using its command-line interface, and makes assumptions about the output of the parser in order to parse it into a Python dict object and transfer it using JSON.  The parser will break if the output changes significantly, but it has been tested on **Core NLP tools version 3.4.1** released 2014-08-27.
 
+## 使用中文时的注意事项
+确保`pexpect`模块已经升级到最新的版本（v3.2，[Pexpect on Github](https://github.com/pexpect/pexpect)），并在`corenlp.py`中使用`pexpect.spawnu`而不是`pexpect.spawn`，详见：http://pexpect.readthedocs.org/en/latest/api/pexpect.html#handling-unicode
+
 ## Download and Usage
 
 To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the compressed file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.  In other words:
