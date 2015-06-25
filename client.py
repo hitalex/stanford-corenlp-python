@@ -1,3 +1,5 @@
+#coding=utf8
+
 import json
 from jsonrpc import ServerProxy, JsonRpc20, TransportTcpIp
 from pprint import pprint
@@ -11,9 +13,11 @@ class StanfordNLP:
         return json.loads(self.server.parse(text))
 
 nlp = StanfordNLP()
-result = nlp.parse("Hello world!  It is so beautiful.")
+#result = nlp.parse(u"Hello world!  It is so beautiful.")
+result = nlp.parse(u"今天天气真不错啊！")
 pprint(result)
 
 from nltk.tree import Tree
-tree = Tree.parse(result['sentences'][0]['parsetree'])
-pprint(tree)
+tree = Tree.fromstring(result['sentences'][0]['parsetree'])
+#pprint(tree)
+tree.pretty_print()

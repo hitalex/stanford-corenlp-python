@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+#coding=utf8
+
 #
 # corenlp  - Python interface to Stanford Core NLP tools
 # Copyright (c) 2014 Dustin Smith
@@ -133,21 +135,25 @@ class StanfordCoreNLP(object):
         Spawns the server as a process.
         """
         jars = ["stanford-corenlp-3.4.1.jar",
-                "stanford-corenlp-3.4.1-models.jar",
-                "joda-time.jar",
-                "xom.jar",
-                "jollyday.jar"]
+                #"stanford-corenlp-3.4.1-models.jar",
+                "stanford-chinese-corenlp-2014-02-24-models.jar", # add chinese models
+                #"joda-time.jar",
+                #"xom.jar",
+                #"jollyday.jar"
+               ]
        
         # if CoreNLP libraries are in a different directory,
         # change the corenlp_path variable to point to them
         if not corenlp_path:
-            corenlp_path = "./stanford-corenlp-full-2014-08-27/"
+            #corenlp_path = "./stanford-corenlp-full-2014-08-27/"
+            corenlp_path = "/home/kqc/tools/stanford-corenlp-full-2014-08-27/" # my own corenlp dir
         
         java_path = "java"
         classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
         # include the properties file, so you can change defaults
         # but any changes in output format will break parse_parser_results()
-        props = "-props default.properties" 
+        props = "-props StanfordCoreNLP-chinese.properties"  # for chinese
+        #props = "-props default.properties" 
         
         # add and check classpaths
         jars = [corenlp_path + jar for jar in jars]
@@ -157,25 +163,28 @@ class StanfordCoreNLP(object):
                 sys.exit(1)
         
         # spawn the server
-        start_corenlp = "%s -Xmx1800m -cp %s %s %s" % (java_path, ':'.join(jars), classname, props)
+        #start_corenlp = "%s -Xmx1800m -cp %s %s %s" % (java_path, ':'.join(jars), classname, props)
+        start_corenlp = "%s -Xmx3g -cp %s %s %s" % (java_path, ':'.join(jars), classname, props) # for chinese
+        
         if VERBOSE: 
             logger.debug(start_corenlp)
-        self.corenlp = pexpect.spawn(start_corenlp)
+        self.corenlp = pexpect.spawnu(start_corenlp, encoding='utf8')
         
         # show progress bar while loading the models
         widgets = ['Loading Models: ', Fraction()]
         pbar = ProgressBar(widgets=widgets, maxval=5, force_update=True).start()
-        self.corenlp.expect("done.", timeout=20) # Load pos tagger model (~5sec)
+        # increase the timeout setting for chinese
+        self.corenlp.expect(u"done.", timeout=2000) # Load pos tagger model (~5sec)
         pbar.update(1)
-        self.corenlp.expect("done.", timeout=200) # Load NER-all classifier (~33sec)
+        self.corenlp.expect(u"done.", timeout=2000) # Load NER-all classifier (~33sec)
         pbar.update(2)
-        self.corenlp.expect("done.", timeout=600) # Load NER-muc classifier (~60sec)
+        self.corenlp.expect(u"done.", timeout=6000) # Load NER-muc classifier (~60sec)
         pbar.update(3)
-        self.corenlp.expect("done.", timeout=600) # Load CoNLL classifier (~50sec)
+        self.corenlp.expect(u"done.", timeout=6000) # Load CoNLL classifier (~50sec)
         pbar.update(4)
-        self.corenlp.expect("done.", timeout=200) # Loading PCFG (~3sec)
+        self.corenlp.expect(u"done.", timeout=2000) # Loading PCFG (~3sec)
         pbar.update(5)
-        self.corenlp.expect("Entering interactive shell.")
+        self.corenlp.expect(u"Entering interactive shell.")
         pbar.finish()
     
     def _parse(self, text):
@@ -252,7 +261,8 @@ if __name__ == '__main__':
                       help='Host to serve on (default: 127.0.0.1. Use 0.0.0.0 to make public)')
     options, args = parser.parse_args()
     server = jsonrpc.Server(jsonrpc.JsonRpc20(),
-                            jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
+                            jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))),
+                            "corenlp-server.log")
     
     nlp = StanfordCoreNLP()
     server.register_function(nlp.parse)

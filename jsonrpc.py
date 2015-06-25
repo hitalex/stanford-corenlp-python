@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: ascii -*-
+# -*- coding: utf8 -*-
 """
 JSON-RPC (remote procedure call).
 
@@ -651,6 +651,7 @@ import time
 def log_dummy( message ):
     """dummy-logger: do nothing"""
     pass
+    
 def log_stdout( message ):
     """print message to STDOUT"""
     print message
@@ -743,7 +744,7 @@ class TransportSocket(Transport):
         - improve this (e.g. make sure that connections are closed, socket-files are deleted etc.)
         - exception-handling? (socket.error)
     """
-    def __init__( self, addr, limit=4096, sock_type=socket.AF_INET, sock_prot=socket.SOCK_STREAM, timeout=5.0, logfunc=log_dummy ):
+    def __init__( self, addr, limit=4096, sock_type=socket.AF_INET, sock_prot=socket.SOCK_STREAM, timeout=5.0, logfunc=log_stdout ):
         """
         :Parameters:
             - addr: socket-address
@@ -832,7 +833,7 @@ if hasattr(socket, 'AF_UNIX'):
     class TransportUnixSocket(TransportSocket):
         """Transport via Unix Domain Socket.
         """
-        def __init__(self, addr=None, limit=4096, timeout=5.0, logfunc=log_dummy):
+        def __init__(self, addr=None, limit=4096, timeout=5.0, logfunc=log_stdout):
             """
             :Parameters:
                 - addr: "socket_file"
@@ -846,7 +847,7 @@ if hasattr(socket, 'AF_UNIX'):
 class TransportTcpIp(TransportSocket):
     """Transport via TCP/IP.
     """
-    def __init__(self, addr=None, limit=4096, timeout=5.0, logfunc=log_dummy):
+    def __init__(self, addr=None, limit=4096, timeout=5.0, logfunc=log_stdout):
         """
         :Parameters:
             - addr: ("host",port)
@@ -963,6 +964,7 @@ class Server:
         self.__transport = transport
         self.logfile = logfile
         if self.logfile is not None:    #create logfile (or raise exception)
+            print 'Creating log file: ', self.logfile
             f = codecs.open( self.logfile, 'a', encoding='utf-8' )
             f.close()
 
@@ -1019,6 +1021,7 @@ class Server:
         :Returns: the data to send back or None if nothing should be sent back
         :Raises:  RPCFault (and maybe others)
         """
+        #import ipdb; ipdb.set_trace()
         #TODO: id
         notification = False
         try:
